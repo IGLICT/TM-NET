@@ -1,6 +1,6 @@
 # TM-NET: Deep Generative Networks for Textured Meshes
 
-This is a Python3 / Pytorch implementation of [TM-NET](http://geometrylearning.com/TM-NET/).
+This is a Python3 / Pytorch implementation of TM-NET.
 ![](./matlab/teaser.jpg)
 
 # Setup
