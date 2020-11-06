@@ -614,8 +614,6 @@ class PixelSNAIL(nn.Module):
     def backward(self, out, target):
         cross_entropy_loss = self.criterion(out, target)
         self.cross_entropy_loss = cross_entropy_loss
-        if self.extra_diff == 0:
-            self.extra_diff = self.cross_entropy_loss
-        loss = self.cross_entropy_loss + self.extra_diff*0
+        loss = self.cross_entropy_loss
         loss.backward()
         return self.cross_entropy_loss, self.extra_diff

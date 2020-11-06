@@ -81,7 +81,7 @@ def train(args, epoch, loader, model, optimizer, scheduler, device):
         
         # loss = criterion(out, target)
         # loss.backward()
-        cross_entropy_loss, extra_loss = model.backward(out, target)
+        cross_entropy_loss, _ = model.backward(out, target)
 
         if scheduler is not None:
             scheduler.step()
@@ -95,7 +95,7 @@ def train(args, epoch, loader, model, optimizer, scheduler, device):
 
         loader.set_description(
             (
-                f'epoch: {epoch + 1}/{args.epoch}; loss: {cross_entropy_loss.item():.5f}; extra_loss: {extra_loss.item():.5f}; '
+                f'epoch: {epoch + 1}/{args.epoch}; loss: {cross_entropy_loss.item():.5f}; '
                 f'acc: {accuracy:.5f}; lr: {lr:.5f}'
             )
         )
