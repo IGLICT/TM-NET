@@ -4,8 +4,8 @@ This is a Python3 / Pytorch implementation of TM-NET.
 ![](./matlab/teaser.jpg)
 
 1. [Setup](#Setup)
-2. [Prepare Data](#(Prepare-Data))
-3. [Training and Test](#(Training-and-Test))
+2. [Prepare Data](#Prepare Data)
+3. [Training and Test](#Training and Test)
 4. [DEMO](#DEMO)
 
 # Setup
