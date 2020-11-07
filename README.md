@@ -3,6 +3,11 @@
 This is a Python3 / Pytorch implementation of TM-NET.
 ![](./matlab/teaser.jpg)
 
+1. [Setup](#Setup)
+2. [Prepare Data](#(Prepare-Data))
+3. [Training and Test](#(Training-and-Test))
+4. [DEMO](#DEMO)
+
 # Setup
 
 To run this code you need the following:
@@ -23,7 +28,7 @@ pip install -r requirements.txt
 
    An example is shown in ```Pipeline.m```.
 
-# Training the model
+# Training and Test
 
 - Train PartVAE for each part
 ```shell
@@ -142,3 +147,11 @@ python conditional_sample_2levels_other_parts.py --vqvae ./car_patch_vqvae_ckpt/
 # View Results
 1. Run ```ViewOBJandTexture.m``` to generate single textured part.
 2. Merge parts to form the whole textured model by ```MergeOBJWithTexture.m```.
+
+# DEMO
+
+1. Download checkpoint [PartVAE]() [TextureVAE]() [PixelSNAIL]().
+
+2. Run ``sh DEMO.sh``
+
+3. Copy a generated texture image to target directory `` `` and open OBJ file in Meshlab.
