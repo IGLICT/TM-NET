@@ -28,12 +28,8 @@ class PartFeatSampler(nn.Module):
         mu = self.mlp2mu(x)
 
         if self.probabilistic:
-            logvar = self.mlp2var(x)
-            std = logvar.mul(0.5).exp_()
-            # print(std.shape)
+            std = torch.exp(0.5*logvar)
             eps = torch.randn_like(std)
-
-            kld = -0.5*mu.pow(2).add_(logvar.exp()).mul_(-1).add_(1).add_(logvar)
 
             return torch.cat([eps.mul(std).add_(mu), kld], 1)
         else:
@@ -70,7 +66,10 @@ class PartDeformEncoder(nn.Module):
             # self.bn8 = torch.nn.InstanceNorm1d(9)
             # self.bn9 = torch.nn.InstanceNorm1d(9)
             # self.bn10 = torch.nn.InstanceNorm1d(9)
-        self.sampler = PartFeatSampler(in_size = num_point*9, feature_size=feat_len, probabilistic=probabilistic)
+        self.mlp2mu = nn.Linear(num_point*9, feat_len)
+        self.mlp2var = nn.Linear(num_point*9, feat_len)
+
+        # self.sampler = PartFeatSampler(in_size = num_point*9, feature_size=feat_len, probabilistic=probabilistic)
 
     def forward(self, featurein):
         feature = featurein
@@ -101,9 +100,11 @@ class PartDeformEncoder(nn.Module):
             # net = torch.tanh(self.conv3(net, edge_index))
         net = net.contiguous().view(-1, self.vertex_num * 9)
 
-        net = self.sampler(net)
+        # net = self.sampler(net)
+        mu = self.mlp2mu(net)
+        logvar = self.mlp2var(net)
 
-        return net
+        return mu, logvar
 
 class PartDeformDecoder(nn.Module):
 
@@ -196,18 +197,25 @@ class GeoVAE(nn.Module):
         self.geo_decoder = PartDeformDecoder(self.geo_hidden_dim, self.num_point, edge_index, bn = False)
 
     def encode(self, geo_input):
-        geo_z = self.geo_encoder(geo_input).contiguous()
-        return geo_z
+        mu, logvar = self.geo_encoder(geo_input)
+        mu, logvar = mu.contiguous(), logvar.contiguous()
+        return mu, logvar
 
     def decode(self, geo_z):
         geo_output = self.geo_decoder(geo_z).contiguous()
         return geo_output
 
+    def reparameterize(self, mu, logvar):
+        std = torch.exp(0.5*logvar)
+        eps = torch.randn_like(std)
+        return mu + eps*std
+
     def forward(self, geo_input):
-        geo_z = self.encode(geo_input)
+        mu, logvar = self.encode(geo_input)
+        geo_z = self.reparameterize(mu, logvar)
         geo_output = self.decode(geo_z)
 
-        return geo_z, geo_output
+        return geo_z, geo_output, mu, logvar
     
 class GeoVAEAllParts(nn.Module):
     """docstring for GeoVAE"""

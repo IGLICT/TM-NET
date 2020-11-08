@@ -106,6 +106,7 @@ def train(epoch, loader, model, optimizer, scheduler, device):
     L1Loss = nn.L1Loss(reduction='sum')
 
     latent_loss_weight = 0.25
+    seam_loss_weight = 1
     sample_size = 1
 
     mse_sum = 0
@@ -123,7 +124,7 @@ def train(epoch, loader, model, optimizer, scheduler, device):
         # seam_loss
         seam_loss = get_seam_loss(dec)
 
-        loss = recon_loss + latent_loss_weight * latent_loss + seam_loss
+        loss = recon_loss + latent_loss_weight * latent_loss + seam_loss_weight * seam_loss
         loss.backward(retain_graph=True)
 
         if scheduler is not None:
@@ -233,7 +234,7 @@ if __name__ == '__main__':
                 optimizer, args.lr, n_iter=len(loader) * args.epoch, momentum=None
             )
         if args.ckpt_dir is not None and args.load_ckpt is True:
-            ckpt = torch.load(os.path.join(args.ckpt_dir, 'vqvae_newest.pt'), map_location=device)
+            ckpt = torch.load(os.path.join(args.ckpt_dir, args.part_name, 'vqvae_newest.pt'), map_location=device)
             model.load_state_dict(ckpt['model'])
             print('load checkpoint successfully')
         
@@ -260,21 +261,6 @@ if __name__ == '__main__':
         model.load_state_dict(ckpt['model'])
         model.eval()
 
-        # if args.image_dir.endswith('train'):
-        #     recon_dir = os.path.join(args.ckpt_dir, 'train_recon1')
-        #     auto_texture_dir = os.path.join(args.ckpt_dir, 'train_auto_texture')
-        # elif args.image_dir.endswith('test'):
-        #     recon_dir = os.path.join(args.ckpt_dir, 'test_recon1')
-        #     auto_texture_dir = os.path.join(args.ckpt_dir, 'test_auto_texture')
-        # else:
-        #     recon_dir = os.path.join(args.ckpt_dir, 'test_recon1')
-        #     auto_texture_dir = os.path.join(args.ckpt_dir, 'test_auto_texture')
-        #     print('image_dir does not end with \'train or \'test')
-             
-        # if not os.path.exists(recon_dir):
-        #     os.mkdir(recon_dir)
-        # if not os.path.exists(auto_texture_dir):
-        #     os.mkdir(auto_texture_dir)
         transform = transforms.Compose(
             [
                 transforms.Resize((args.height, args.width)),
@@ -300,8 +286,6 @@ if __name__ == '__main__':
             for i, (img, filename) in enumerate(test_loader):
                 filename = filename[0]
 
-                # if '2dbc73ad4ce7950163e148e250c0340d' not in filename:
-                #     continue
                 img = img.to(device)
                 
                 quant_t, quant_b, diff, id_t, id_b = model.encode(img)
@@ -309,9 +293,7 @@ if __name__ == '__main__':
                 # dec[:, 3, :, :] = ((dec[:, 3, :, :] > 0).float()-0.5)*2
 
                 utils.save_image(
-                    # torch.cat([img, dec, recon_dec], 0),
                     dec,
-                    # os.path.join(recon_dir, filename+'_0.png'),
                     os.path.join(recon_dir, filename+'.png'),
                     nrow=1,
                     normalize=True,
@@ -324,20 +306,15 @@ if __name__ == '__main__':
             interpolation_dir = os.path.join(args.ckpt_dir, 'interpolation')
             if not os.path.exists(interpolation_dir):
                 os.mkdir(interpolation_dir)
-            id1 = 'a276d9eee2bb79f2691c0d594e383a87'
-            id2 = 'aface94c7aeb373865ffdcf45b6f330c'
-            
-            # part_names = ['part1', 'part2']
-            part_names = ['part1', 'part2', 'part3']
-            # part_names = ['part1', 'part2']
-            # part_names = ['body', 'left_front_wheel', 'right_front_wheel', 'left_back_wheel', 'right_back_wheel','left_mirror','right_mirror']
-            # part_names = ['left_leg1', 'left_leg2', 'left_leg3', 'left_leg4', 'right_leg1', 'right_leg2', 'right_leg3', 'right_leg4', 'surface']
-            # part_names = ['back', 'hand_1', 'hand_2', 'leg_ver_1', 'leg_ver_2', 'leg_ver_3', 'leg_ver_4', 'seat']
+
+            id1 = '47638c9573ee7ba3d8a1849b0098a5e7'
+            id2 = '5b423f02b76df0ec1472a7f3e4685aa'
 
             interpolation_num = 11
-            for part_name in part_names:
-                filename1 = os.path.join(args.image_dir, id1, id1+'_'+part_name+'.png')
-                filename2 = os.path.join(args.image_dir, id2, id2+'_'+part_name+'.png')
+            
+            for patch_num in range(6):
+                filename1 = os.path.join(args.image_dir, id1, id1+'_'+args.part_name+'_patch'+str(patch_num)+'.png')
+                filename2 = os.path.join(args.image_dir, id2, id2+'_'+args.part_name+'_patch'+str(patch_num)+'.png')
                 if not os.path.exists(filename1) or not os.path.exists(filename2):
                     continue
                 image1 = Image.open(filename1)
@@ -345,11 +322,12 @@ if __name__ == '__main__':
                 np_image = np.array(image1)
                 np_image.setflags(write=1)
                 np_image[:, :, 3] = np_image[:, :, 3]/255
-                np_image[:, :, 0] = np.multiply(np_image[:, :, 0], np_image[:, :, 3])
-                np_image[:, :, 1] = np.multiply(np_image[:, :, 1], np_image[:, :, 3])
-                np_image[:, :, 2] = np.multiply(np_image[:, :, 2], np_image[:, :, 3])
+                # np_image[:, :, 0] = np.multiply(np_image[:, :, 0], np_image[:, :, 3])
+                # np_image[:, :, 1] = np.multiply(np_image[:, :, 1], np_image[:, :, 3])
+                # np_image[:, :, 2] = np.multiply(np_image[:, :, 2], np_image[:, :, 3])
                 np_image[:, :, 3] = np_image[:, :, 3]*255
-                image1 = Image.fromarray(np.uint8(np_image))
+                # image1 = Image.fromarray(np.uint8(np_image))
+                image1 = Image.fromarray(np.uint8(np_image[:, :, :3]))
                 x1 = transform(image1)
                 # x1 = F.to_tensor(image1)
                 x1.unsqueeze_(0)
@@ -359,29 +337,37 @@ if __name__ == '__main__':
                 np_image = np.array(image2)
                 np_image.setflags(write=1)
                 np_image[:, :, 3] = np_image[:, :, 3]/255
-                np_image[:, :, 0] = np.multiply(np_image[:, :, 0], np_image[:, :, 3])
-                np_image[:, :, 1] = np.multiply(np_image[:, :, 1], np_image[:, :, 3])
-                np_image[:, :, 2] = np.multiply(np_image[:, :, 2], np_image[:, :, 3])
+                # np_image[:, :, 0] = np.multiply(np_image[:, :, 0], np_image[:, :, 3])
+                # np_image[:, :, 1] = np.multiply(np_image[:, :, 1], np_image[:, :, 3])
+                # np_image[:, :, 2] = np.multiply(np_image[:, :, 2], np_image[:, :, 3])
                 np_image[:, :, 3] = np_image[:, :, 3]*255
-                image2 = Image.fromarray(np.uint8(np_image))
+                # image2 = Image.fromarray(np.uint8(np_image))
+                image2 = Image.fromarray(np.uint8(np_image[:, :, :3]))
                 x2 = transform(image2)
                 # x2 = F.to_tensor(image2)
                 x2.unsqueeze_(0)
                 # x2 = x2*2 - 1
                 x2 = x2.to(device)
 
-                quant_tt1, quant_t1, quant_b1, diff1, id_tt1, id_t1, id_b1, z_tt1, z_t1, z_b1 = model.encode(x1)
-                quant_tt2, quant_t2, quant_b2, diff2, id_tt2, id_t2, id_b2, z_tt2, z_t2, z_b2 = model.encode(x2)
+                # quant_tt1, quant_t1, quant_b1, diff1, id_tt1, id_t1, id_b1, z_tt1, z_t1, z_b1 = model.encode(x1)
+                # quant_tt2, quant_t2, quant_b2, diff2, id_tt2, id_t2, id_b2, z_tt2, z_t2, z_b2 = model.encode(x2)
+                quant_tt1, quant_t1, _, id_t, id_b = model.encode(x1)
+                quant_tt2, quant_t2, _, id_t, id_b = model.encode(x2)
+
+                quant_tt1 = quant_tt1.reshape([-1, 64*16*16])
+                quant_tt2 = quant_tt2.reshape([-1, 64*16*16])
+                quant_t1 = quant_t1.reshape([-1, 64*32*32])
+                quant_t2 = quant_t2.reshape([-1, 64*32*32])
 
                 # toptop
-                quant_tt1 = quant_tt1.reshape([-1, 64*32*32])
-                quant_tt2 = quant_tt2.reshape([-1, 64*32*32])
-                # top
-                quant_t1 = quant_t1.reshape([-1, 64*64*64])
-                quant_t2 = quant_t2.reshape([-1, 64*64*64])
+                # quant_tt1 = quant_tt1.reshape([-1, 64*32*32])
+                # quant_tt2 = quant_tt2.reshape([-1, 64*32*32])
+                # # top
+                # quant_t1 = quant_t1.reshape([-1, 64*64*64])
+                # quant_t2 = quant_t2.reshape([-1, 64*64*64])
                 # geo_z_quant1 = geo_z_quant1.reshape([-1, 6*6*64])
-                quant_b1 = quant_b1.reshape([-1, 64*128*128])
-                quant_b2 = quant_b2.reshape([-1, 64*128*128])
+                # quant_b1 = quant_b1.reshape([-1, 64*128*128])
+                # quant_b2 = quant_b2.reshape([-1, 64*128*128])
                 # geo_z_quant2 = geo_z_quant2.reshape([-1, 6*6*64])
 
 
@@ -391,20 +377,28 @@ if __name__ == '__main__':
 
                 inter_quant_tts = torch.lerp(quant_tt1, quant_tt2, inter_weights)
                 inter_quant_ts = torch.lerp(quant_t1, quant_t2, inter_weights)
-                inter_quant_bs = torch.lerp(quant_b1, quant_b2, inter_weights)
+                # inter_quant_bs = torch.lerp(quant_b1, quant_b2, inter_weights)
                 # inter_geo_z_quants = torch.lerp(geo_z_quant1, geo_z_quant2, inter_weights)
 
-                inter_quant_tts = inter_quant_tts.reshape([-1, 64, 32, 32])
-                inter_quant_ts = inter_quant_ts.reshape([-1, 64, 64, 64])
-                inter_quant_bs = inter_quant_bs.reshape([-1, 64, 128, 128])
-                dec = model.decode(inter_quant_tts, inter_quant_ts, inter_quant_bs)
+                inter_quant_tts = inter_quant_tts.reshape([-1, 64, 16, 16])
+                inter_quant_ts = inter_quant_ts.reshape([-1, 64, 32, 32])
+                # inter_quant_tts = inter_quant_tts.reshape([-1, 64, 32, 32])
+                # inter_quant_ts = inter_quant_ts.reshape([-1, 64, 64, 64])
+                # inter_quant_bs = inter_quant_bs.reshape([-1, 64, 128, 128])
+                # dec = model.decode(inter_quant_tts, inter_quant_ts, inter_quant_bs)
+                dec = model.decode(inter_quant_tts, inter_quant_ts)
 
-                dec_1 = model.decode(quant_tt1.reshape([-1, 64, 32, 32]), quant_t1.reshape([-1, 64, 64, 64]), quant_b1.reshape([-1, 64, 128, 128]))
-                dec_2 = model.decode(quant_tt2.reshape([-1, 64, 32, 32]), quant_t2.reshape([-1, 64, 64, 64]), quant_b2.reshape([-1, 64, 128, 128]))
+                dec_1 = model.decode(quant_tt1.reshape([-1, 64, 16, 16]), quant_t1.reshape([-1, 64, 32, 32]))
+                dec_2 = model.decode(quant_tt2.reshape([-1, 64, 16, 16]), quant_t2.reshape([-1, 64, 32, 32]))
+                # dec_1 = model.decode(quant_tt1.reshape([-1, 64, 32, 32]), quant_t1.reshape([-1, 64, 64, 64]), quant_b1.reshape([-1, 64, 128, 128]))
+                # dec_2 = model.decode(quant_tt2.reshape([-1, 64, 32, 32]), quant_t2.reshape([-1, 64, 64, 64]), quant_b2.reshape([-1, 64, 128, 128]))
+                # dec_1 = model.decode(quant_tt1.reshape([-1, 64, 32, 32]), quant_t1.reshape([-1, 64, 64, 64]))
+                # dec_2 = model.decode(quant_tt2.reshape([-1, 64, 32, 32]), quant_t2.reshape([-1, 64, 64, 64]))
+
                 utils.save_image(
                     dec_1,
                     # f'interpolation/{part_name}_{str(i)}.png',
-                    os.path.join(interpolation_dir, id1+'_'+part_name+'.png'),
+                    os.path.join(interpolation_dir, id1+'_'+args.part_name+'_patch'+str(patch_num)+'.png'),
                     nrow=1,
                     normalize=True,
                     range=(-1, 1),
@@ -412,7 +406,7 @@ if __name__ == '__main__':
                 utils.save_image(
                     dec_2,
                     # f'interpolation/{part_name}_{str(i)}.png',
-                    os.path.join(interpolation_dir, id2+'_'+part_name+'.png'),
+                    os.path.join(interpolation_dir, id2+'_'+args.part_name+'_patch'+str(patch_num)+'.png'),
                     nrow=1,
                     normalize=True,
                     range=(-1, 1),
@@ -420,265 +414,10 @@ if __name__ == '__main__':
                 for i in range(interpolation_num):
                     utils.save_image(
                         dec[i, :, :, :],
-                        # f'interpolation/{part_name}_{str(i)}.png',
-                        os.path.join(interpolation_dir, part_name+str(i)+'.png'),
+                        # f'interpolation/{args.part_name}_{str(i)}.png',
+                        os.path.join(interpolation_dir, args.part_name+str(i)+'_patch'+str(patch_num)+'.png'),
                         nrow=1,
                         normalize=True,
                         range=(-1, 1),
-                    )
-                
-        #         sio.savemat(os.path.join('interpolation', part_name+'_'+str(i)+'.mat'), {'geo_output': torch.Tensor.cpu(geo_output[i:i+1, :, :]).detach().numpy()})
-        # generation
-        elif args.is_test == 3:
-            if args.image_dir.endswith('train'):
-                auto_texture_dir = os.path.join(args.mapping_ckpt_dir, 'train_auto_texture')
-            elif args.image_dir.endswith('test'):
-                auto_texture_dir = os.path.join(args.mapping_ckpt_dir, 'test_auto_texture')
-            else:
-                print('image_dir does not end with \'train or \'test')
-            random_dir = os.path.join(args.ckpt_dir, 'random')
-            if not os.path.exists(random_dir):
-                os.mkdir(random_dir)
-            generation_num = 200
-            embed_dim = 64
-
-            toptop_latent_dim = 256
-            top_latent_dim = 512
-            bottom_latent_dim = 2048
-            z_tt_latent = torch.randn(generation_num, toptop_latent_dim)
-            z_t_latent = torch.randn(generation_num, top_latent_dim)
-            z_b_latent = torch.randn(generation_num, bottom_latent_dim)
-
-            quant_tt = model.z_tt_decoder(z_tt_latent)
-            quant_t = model.z_t_decoder(z_t_latent)
-            quant_b = model.z_b_decoder(z_b_latent)
-
-            lookup_quant_tt, _, _ = model.quantize_tt(quant_tt.permute(0, 2, 3, 1))
-            lookup_quant_t, _, _ = model.quantize_t(quant_t.permute(0, 2, 3, 1))
-            lookup_quant_b, _, _ = model.quantize_b(quant_b.permute(0, 2, 3, 1))
-
-            lookup_quant_tt = lookup_quant_tt.permute(0, 3, 1, 2)
-            lookup_quant_t = lookup_quant_t.permute(0, 3, 1, 2)
-            lookup_quant_b = lookup_quant_b.permute(0, 3, 1, 2)
-
-            dec = model.decode(lookup_quant_tt, lookup_quant_t, lookup_quant_b)
-            for i in range(generation_num):
-                utils.save_image(
-                    dec[i, :, :, :],
-                    # f'random/{str(i)}.png',
-                    os.path.join(random_dir, str(i)+'.png'),
-                    nrow=1,
-                    normalize=True,
-                    range=(-1, 1),
-                )
-        # auto texture
-        elif args.is_test == 4:
-            geo_dataset = GeometryDatasetAllPartsNewTensor(args.mat_dir, args.part_name, args.ref_mesh_mat)
-            geo_loader = DataLoader(geo_dataset, batch_size=1, shuffle=True, num_workers=4)
-
-            part_num = len(geo_dataset.part_names)
-            geo_model = GeoVAE.GeoVAEAllParts(geo_hidden_dim=args.geo_hidden_dim, part_num=part_num, ref_mesh_mat=args.ref_mesh_mat, device=device).to(device)
-            geo_model = geo_model.float()
-            print('loading {}'.format(args.geo_ckpt_dir))
-            geo_model.load_state_dict(torch.load(args.geo_ckpt_dir, map_location=torch.device(device)))
-            geo_model.eval()
-
-            print('loading {}'.format(args.mapping_ckpt_dir))
-            mapping_ckpt = torch.load(args.mapping_ckpt_dir, map_location=device)
-
-            # mapping_toptop = Mapping.BicycleGANAllParts(args.geo_hidden_dim, 256, args.noise_Z_dim, part_num, device=device)
-            # mapping_toptop.to(device)
-            # mapping_top = Mapping.BicycleGANAllParts(args.geo_hidden_dim, 512, args.noise_Z_dim, part_num, device=device)
-            # mapping_top.to(device)
-            # mapping_bottom = Mapping.BicycleGANAllParts(args.geo_hidden_dim, 2048, args.noise_Z_dim, part_num, device=device)
-            # mapping_bottom.to(device)
-
-            num_layers = 6
-            mapping_toptop = Mapping.BicycleGAN(args.geo_hidden_dim, 32*32, args.noise_Z_dim, num_layers=num_layers, device=device)
-            mapping_toptop.to(device)
-            mapping_top = Mapping.BicycleGAN(args.geo_hidden_dim, 64*64, args.noise_Z_dim, num_layers=num_layers, device=device)
-            mapping_top.to(device)
-            mapping_bottom = Mapping.BicycleGAN(args.geo_hidden_dim, 128*128, args.noise_Z_dim, num_layers=num_layers, device=device)
-            mapping_bottom.to(device)
-
-            mapping_toptop.load_state_dict(mapping_ckpt['toptop'])
-            mapping_top.load_state_dict(mapping_ckpt['top'])
-            mapping_bottom.load_state_dict(mapping_ckpt['bottom'])
-
-            mapping_toptop.eval()
-            mapping_top.eval()
-            mapping_bottom.eval()
-
-            # args = mapping_ckpt['args']
-            MSELoss = nn.MSELoss(reduction='sum')
-
-            for i, (geo_inputs, filename) in enumerate(geo_loader):
-                filename = filename[0]
-
-                geo_inputs = geo_inputs.to(device).float()
-                geo_zs, geo_outputs = geo_model(geo_inputs)
-                geo_zs = geo_zs.squeeze(axis=0)
-                # geo_zs[geo_zs!=geo_zs]=0
-
-                imgs = torch.zeros((part_num, 4, args.size, args.size), device=device)
-
-                flag = 1
-                l = 0
-                for part_name in geo_dataset.part_names:
-                    img_filename = os.path.join(args.image_dir, filename+'_'+part_name+'.png')
-                    if os.path.exists(img_filename):
-                        img = Image.open(img_filename)
-                        np_image = np.array(img)
-                        np_image.setflags(write=1)
-                        np_image[:, :, 3] = np_image[:, :, 3]/255
-                        np_image[:, :, 0] = np.multiply(np_image[:, :, 0], np_image[:, :, 3])
-                        np_image[:, :, 1] = np.multiply(np_image[:, :, 1], np_image[:, :, 3])
-                        np_image[:, :, 2] = np.multiply(np_image[:, :, 2], np_image[:, :, 3])
-                        np_image[:, :, 3] = np_image[:, :, 3]*255
-                        img = Image.fromarray(np.uint8(np_image))
-                        img = transform(img)
-                        # img.unsqueeze_(0)
-                        img = img.to(device)
-                    else:
-                        img = torch.zeros((4, args.size, args.size), device=device)
-                        flag = 0
-                    imgs[l, :, :, :] = img
-                    l = l + 1
-
-                    if flag == 0:
-                        break
-                if flag == 0:
-                    continue
-
-                quant_tt, quant_t, quant_b, diff, id_tt, id_t, id_b, z_tt, z_t, z_b, z_tt_latent, z_t_latent, z_b_latent, recon_z_tt, recon_z_t, recon_z_b, recon_quant_tt, recon_quant_t, recon_quant_b = model.encode(imgs)
-
-                mapping_toptop.set_input(geo_zs, id_tt.reshape(-1, 32*32).to(torch.float))
-                mapping_top.set_input(geo_zs, id_t.reshape(-1, 64*64).to(torch.float))
-                mapping_bottom.set_input(geo_zs, id_b.reshape(-1, 128*128).to(torch.float))
-
-                # mapping_toptop.set_input(geo_zs, z_tt_latent)
-                # mapping_top.set_input(geo_zs, z_t_latent)
-                # mapping_bottom.set_input(geo_zs, z_b_latent)
-
-                for j in range(1):
-                    # toptop_fake_B = mapping_toptop.test(encode=False)
-                    # top_fake_B = mapping_top.test(encode=False)
-                    # bottom_fake_B = mapping_bottom.test(encode=False)
-
-                    _, toptop_fake_B, toptop_real_B = mapping_toptop.test(encode=True)
-                    _, top_fake_B, top_real_B = mapping_top.test(encode=True)
-                    _, bottom_fake_B, bottom_real_B = mapping_bottom.test(encode=True)
-
-                    toptop_fake_B = toptop_fake_B.round().to(torch.int64).reshape(-1, 32, 32).contiguous()
-                    top_fake_B = top_fake_B.round().to(torch.int64).reshape(-1, 64, 64).contiguous()
-                    bottom_fake_B = bottom_fake_B.round().to(torch.int64).reshape(-1, 128, 128).contiguous()
-
-                    toptop_fake_B[toptop_fake_B>=256]=255
-                    top_fake_B[top_fake_B>=256]=255
-                    bottom_fake_B[bottom_fake_B>=256]=255
-                    toptop_fake_B[toptop_fake_B<0]=0
-                    top_fake_B[top_fake_B<0]=0
-                    bottom_fake_B[bottom_fake_B<0]=0
-
-                    recon_quant_tt = model.quantize_tt.embed_code(toptop_fake_B)
-                    recon_quant_t = model.quantize_t.embed_code(top_fake_B)
-                    recon_quant_b = model.quantize_b.embed_code(id_b)
-                    recon_quant_tt = recon_quant_tt.permute(0, 3, 1, 2).contiguous()
-                    recon_quant_t = recon_quant_t.permute(0, 3, 1, 2).contiguous()
-                    recon_quant_b = recon_quant_b.permute(0, 3, 1, 2).contiguous()
-                    
-                    # predicted_recon_z_tt = model.z_tt_decoder(toptop_real_B)
-                    # predicted_recon_z_t = model.z_t_decoder(top_real_B)
-                    # predicted_recon_z_b = model.z_b_decoder(bottom_real_B)
-
-                    # predicted_recon_z_tt = predicted_recon_z_tt.permute(0, 2, 3, 1)
-                    # predicted_recon_z_t = predicted_recon_z_t.permute(0, 2, 3, 1)
-                    # predicted_recon_z_b = predicted_recon_z_b.permute(0, 2, 3, 1)
-
-                    # recon_quant_tt, _, _ = model.quantize_tt(predicted_recon_z_tt)
-                    # recon_quant_tt = recon_quant_tt[:, :, :, 0:model.embed_dim].contiguous()
-                    # recon_quant_tt = recon_quant_tt.permute(0, 3, 1, 2).contiguous()
-
-                    # recon_quant_t, _, _ = model.quantize_t(predicted_recon_z_t)
-                    # recon_quant_t = recon_quant_t[:, :, :, 0:model.embed_dim].contiguous()
-                    # recon_quant_t = recon_quant_t.permute(0, 3, 1, 2).contiguous()
-                    
-                    # recon_quant_b, _, _ = model.quantize_b(predicted_recon_z_b)
-                    # recon_quant_b = recon_quant_b[:, :, :, 0:model.embed_dim].contiguous()
-                    # recon_quant_b = recon_quant_b.permute(0, 3, 1, 2).contiguous()
-
-
-                    # dec = model.decode(quant_tt, quant_t, quant_b)
-                    dec = model.decode(recon_quant_tt, recon_quant_t, recon_quant_b)
-                    dec[:, 3, :, :] = ((dec[:, 3, :, :] > 0).float()-0.5)*2
-                    # print(dec.min(), dec.max())
-                    # recon_featuremap_loss =  MSELoss(z_tt.flatten(start_dim=1), predicted_recon_z_tt.flatten(start_dim=1)) + MSELoss(z_t.flatten(start_dim=1), predicted_recon_z_t.flatten(start_dim=1)) + MSELoss(predicted_recon_z_b.flatten(start_dim=1), z_b.flatten(start_dim=1))
-                    # print(recon_featuremap_loss)
-                    for k in range(part_num):
-                        utils.save_image(
-                                # torch.cat([img, dec], 0),
-                                dec[k, :, :, :],
-                                f'{auto_texture_dir}/{filename}_{geo_dataset.part_names[k]}_{j}.png',
-                                nrow=1,
-                                normalize=True,
-                                range=(-1, 1),
-                            )
-            # sio.savemat(os.path.join(train_auto_texture, filename+'.mat'), {'geo_output': torch.Tensor.cpu(geo_output).detach().numpy()}, do_compression=False)
-
-        # condition
-        # for i, (img, geo_input, filename) in enumerate(test_loader):
-        #     img = img.to(device)
-        #     geo_input = geo_input.to(device).float()
-        #     condition_input = img[:, :, 127:128, 127:128].permute(0, 2, 3, 1)
-        #     quant_t, quant_b, diff, id_t, id_b, geo_z, z_t, z_b, recon_z_t, recon_z_b, predicted_z_t_latent, predicted_z_b_latent, predicted_recon_z_t, predicted_recon_z_b = model.encode(img, geo_input, condition_input)
-
-        #     # predicted_recon_z_t = predicted_recon_z_t.reshape(-1, 16, 16, 64)
-        #     predicted_recon_z_t = predicted_recon_z_t.reshape(-1, 32, 32, 64)
-        #     z_t_condition = torch.cat((predicted_recon_z_t, condition_input.repeat(1, predicted_recon_z_t.shape[1], predicted_recon_z_t.shape[2], 1)), 3).contiguous()
-        #     quant_t, diff_t, id_t = model.quantize_t(z_t_condition)
-        #     quant_t = quant_t[:, :, :, 0:64].contiguous()
-        #     quant_t = quant_t.permute(0, 3, 1, 2).contiguous()
-
-        #     # predicted_recon_z_b = predicted_recon_z_b.reshape(-1, 32, 32, 64)
-        #     predicted_recon_z_b = predicted_recon_z_b.reshape(-1, 64, 64, 64)
-        #     z_b_condition = torch.cat((predicted_recon_z_b, condition_input.repeat(1, predicted_recon_z_b.shape[1], predicted_recon_z_b.shape[2], 1)), 3).contiguous()
-        #     quant_b, diff_b, id_b = model.quantize_b(z_b_condition)
-        #     quant_b = quant_b[:, :, :, 0:64].contiguous()
-        #     quant_b = quant_b.permute(0, 3, 1, 2).contiguous()
-
-
-        #     dec, geo_output = model.decode(quant_t, quant_b, geo_z)
-        #     utils.save_image(
-        #             torch.cat([img, dec], 0),
-        #             # out,
-        #             f'train_auto_texture/{filename}.png',
-        #             nrow=1,
-        #             normalize=True,
-        #             range=(-1, 1),
-        #         )
-        #     sio.savemat(os.path.join('./train_auto_texture', filename[0]+'.mat'), {'geo_output': torch.Tensor.cpu(geo_output).detach().numpy()}, do_compression=False)
-
-        
-        # reconstruction
-        # for i, (img, geo_input, filename) in enumerate(test_loader):
-        #     filename = filename[0]
-            
-        #     img = img.to(device)
-        #     geo_input = geo_input.to(device).float()
-        #     condition_input = img[:, :, 127:128, 127:128].permute(0, 2, 3, 1)
-            
-        #     dec, diff, geo_output, z_t, z_b, recon_z_t, recon_z_b, recon_quant_t, recon_quant_b, recon_dec = model(img, geo_input, condition_input)
-
-        #     utils.save_image(
-        #         # torch.cat([img, out], 0),
-        #         dec,
-        #         # os.path.join(train_recon_dir, filename+'.png'),
-        #         os.path.join(test_recon_dir, filename+'.png'),
-        #         nrow=1,
-        #         normalize=True,
-        #         range=(-1, 1),
-        #     )
-            # print(geo_output)
-        #     sio.savemat(os.path.join(train_recon_dir, filename+'.mat'), {'geo_output': torch.Tensor.cpu(geo_output).detach().numpy()}, do_compression=False)
-
-        
+                    )     
+            merge_patches(interpolation_dir)

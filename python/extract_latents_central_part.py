@@ -34,7 +34,7 @@ def extract_latents_patch(lmdb_env, loader, model, geo_model, args):
 
         for i, (geo_input, origin_geo_input, logrmax, logrmin, smax, smin, filenames) in enumerate(pbar):
             geo_input = geo_input.to(device).float().contiguous()
-            geo_zs, geo_outputs = geo_model(geo_input)
+            geo_zs, geo_outputs, _, _ = geo_model(geo_input)
             geo_zs = geo_zs.detach().cpu().numpy()
 
             for j in range(geo_input.shape[0]):

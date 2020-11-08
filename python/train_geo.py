@@ -22,13 +22,12 @@ def train(epoch, loader, model, optimizer, scheduler, device):
     for i, (geo_input, origin_geo_input, logrmax, logrmin, smax, smin, fullname) in enumerate(loader):
         model.zero_grad()
         geo_input = geo_input.to(device).float().contiguous()
-        geo_z, geo_output = model(geo_input)
+        geo_z, geo_output, mu, logvar = model(geo_input)
         # geo_output[geo_output != geo_output] = 0
         geo_recon_loss = MSELoss(geo_input, geo_output)*model.num_point*9
-        geo_z, kl_loss = torch.chunk(geo_z, 2, 1)
-        kl_loss = kl_loss.sum(dim=1).mean()
-
-        total_loss = geo_recon_loss + kl_loss*0.0001
+        kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())/geo_output.shape[0]
+        
+        total_loss = geo_recon_loss + kl_loss*0.001
         total_loss.backward()
         if torch.isinf(geo_recon_loss):
             print(filename)
@@ -95,7 +94,7 @@ if __name__ == '__main__':
 
         # model.load_state_dict(torch.load(f'./checkpoint/vqvae_newest.pt'))
         if args.ckpt_dir is not None and args.load_ckpt == True:
-            model.load_state_dict(torch.load(os.path.join(args.ckpt_dir, 'geovae_newest.pt'), map_location=device))
+            model.load_state_dict(torch.load(os.path.join(args.ckpt_dir, args.part_name, 'geovae_newest.pt'), map_location=device))
         
         for i in range(args.epoch):
             train(i, loader, model, optimizer, scheduler, device)
@@ -116,7 +115,7 @@ if __name__ == '__main__':
             id_name = id_name.split('.')[0]
 
             geo_input = geo_input.to(device).float()
-            geo_z, geo_output = model(geo_input)
+            geo_z, geo_output, mu, logvar = model(geo_input)
 
             origin_geo_input = torch.Tensor.cpu(origin_geo_input).detach().numpy()
             geo_input = torch.Tensor.cpu(geo_input).detach().numpy()
