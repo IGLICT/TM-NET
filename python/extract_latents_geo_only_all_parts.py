@@ -31,7 +31,7 @@ def extract_latents_geo(lmdb_env, loader, geo_models, args):
                 code_mat = code_mat['code']
 
                 for k in range(len(args.part_names)):
-                    geo_zs, geo_outputs = geo_models[k](geo_inputs[j:j+1, k, :, :])
+                    geo_zs, geo_outputs, _, _ = geo_models[k](geo_inputs[j:j+1, k, :, :])
                     geo_zs = geo_zs.detach().cpu().numpy()
                     geo_zs = np.concatenate([geo_zs, np.expand_dims(code_mat.flatten(), axis=0)], axis=1)
                     geo_zs_all_parts.append(geo_zs)

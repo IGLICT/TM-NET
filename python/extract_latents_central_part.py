@@ -78,7 +78,7 @@ def extract_latents_patch(lmdb_env, loader, model, geo_model, args):
                     id_bs.append(id_b)
                 id_ts = np.concatenate(id_ts, axis=0)
                 id_bs = np.concatenate(id_bs, axis=0)
-                print('{} {} {} '.format(id_ts.shape, id_bs.shape, geo_zs[j:j+1, :].shape))
+                # print('{} {} {} '.format(id_ts.shape, id_bs.shape, geo_zs[j:j+1, :].shape))
 
                 row = CodeRow(ID=filename, geo_zs=geo_zs[j:j+1, :], id_t=id_ts, id_b=id_bs)
                 # row = CodeRow(ID=filename, geo_zs=index, id_t=id_ts, id_b=id_bs)

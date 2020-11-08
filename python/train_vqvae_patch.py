@@ -102,7 +102,7 @@ def get_seam_loss(recon_batches):
 def train(epoch, loader, model, optimizer, scheduler, device):
     loader = tqdm(loader)
 
-    MSELoss = nn.MSELoss(reduction='sum')
+    MSELoss = nn.L1Loss(reduction='sum')
     L1Loss = nn.L1Loss(reduction='sum')
 
     latent_loss_weight = 0.25
