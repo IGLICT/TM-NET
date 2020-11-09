@@ -1,7 +1,7 @@
 # TM-NET: Deep Generative Networks for Textured Meshes
 
 This is a Python3 / Pytorch implementation of TM-NET.
-![](./matlab/teaser.jpg)
+
 
 - [Setup](#setup)
 - [Prepare Data](#prepare-data)
@@ -178,7 +178,7 @@ python conditional_sample_2levels_other_parts.py --vqvae ./car_patch_vqvae_ckpt/
 
 # DEMO
 
-1. Download [checkpoint and extracted latents](https://drive.google.com/file/d/1jv7mH5jjqcFTeREv1gonJA6m5B83vNP0/view?usp=sharing) and put it into ``python`` directory.
+1. Download [checkpoint and extracted latents](https://drive.google.com/file/d/1ivgb-g8QRSxusQkA3WJLu-xdzPtNJla5/view?usp=sharing) and put it into ``python`` directory.
 
 2. Run ``sh DEMO.sh``.
 
