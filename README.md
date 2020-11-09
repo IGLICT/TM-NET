@@ -6,7 +6,7 @@ This is a Python3 / Pytorch implementation of TM-NET.
 - [Setup](#setup)
 - [Prepare Data](#prepare-data)
 - [Training and Test](#training-and-test)
-- [DEMO](#demo)
+- [DEMO on Car Dataset](#demo-on-car-dataset)
 
 # Setup
 
@@ -28,7 +28,7 @@ pip install -r requirements.txt
 5. Run ```TransferColorPerPixelScript.m``` to generate texture images for registered parts.
 6. Run ```PrepareForTraining.m``` to split geometry, structure, image data to training or test dir. It will also divide texture image to six patches.
 
-   An example is shown in ```Pipeline.m```. After you successfully run the code, the dir structure will like follows:
+An example is shown in ```Pipeline.m```. After you successfully run the code, the dir structure will like follows:
 ```txt
 ├─box50
 │  ├─37b6df64a97a5c29369151623ac3890b
@@ -59,7 +59,7 @@ pip install -r requirements.txt
         ├─leg_ver_4
         └─seat
 ```
-   Folder ```final50``` is all we need for training and test.
+Folder ```final50``` is all we need for training and test.
 
 # Training and Test
 
@@ -176,7 +176,7 @@ python conditional_sample_2levels_other_parts.py --vqvae ./car_patch_vqvae_ckpt/
 python conditional_sample_2levels_other_parts.py --vqvae ./car_patch_vqvae_ckpt/right_mirror/vqvae_newest.pt --top ./condition_ckpt/right_mirror/pixelsnail_top.pt --bottom ./condition_ckpt/right_mirror/pixelsnail_bottom.pt --path ./car_latents_with_geo_test/right_mirror --central_part_sample_dir ./condition_ckpt/body/auto_texture --device 0
 ```
 
-# DEMO
+# DEMO on Car Dataset
 
 1. Download [checkpoint and extracted latents](https://drive.google.com/file/d/1ivgb-g8QRSxusQkA3WJLu-xdzPtNJla5/view?usp=sharing) and put it into ``python`` directory.
 
