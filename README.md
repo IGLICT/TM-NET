@@ -180,6 +180,6 @@ python conditional_sample_2levels_other_parts.py --vqvae ./car_patch_vqvae_ckpt/
 
 1. Download [checkpoint and extracted latents](https://drive.google.com/file/d/1A-S-JFM6tO62xl_XS0NChmPMTOzCrJSp/view?usp=sharing) and put it into ``python`` directory.
 
-2. Run ``sh DEMO.sh``.
+2. Run ``sh DEMO.sh`` and generated textures will be shown in ``./condition_ckpt/body/auto_texture``.
 
 3. Copy a suitable texture image to target directory ``./condition_ckpt/body/auto_texture/sample`` and rename it to ``body_reg.png``, then open ``body_reg.obj`` to check the result.
