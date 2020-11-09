@@ -19,6 +19,7 @@ numpy==1.19.4
 opencv-python==4.4.0.46
 pandas==1.1.4
 Pillow==8.0.1
+pkg-resources==0.0.0
 plyfile==0.7.2
 pyparsing==2.4.7
 python-dateutil==2.8.1
