@@ -21,6 +21,8 @@ pip install -r requirements.txt
 
 # Prepare Data
 
+[Data Link](https://forms.gle/38Bn7MMpdhTmgffd6)
+
 1. Run ```GetTransformedCube.m``` to get transformed a mini bounding box which will be used as source shape in non-rigid registration for each partial 3D model.
 2. Run ```SupportAnalysis.m``` to extract structure information from the partial ```obj``` files producing a corresponding ```code.mat``` for each 3D model.
 3. Run ```register.m``` to perform non-rigid registrations from transformed mini bounding boxes to original partial 3D models.
