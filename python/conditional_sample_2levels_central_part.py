@@ -149,19 +149,6 @@ if __name__ == '__main__':
             basename_without_ext = basename.split('.')[0]
             this_id = basename_without_ext.split('_')[0]
 
-            # geo_zs = max_min_normalize(geo_zs, 0, 255)
-            # geo_zs = geo_zs.round()
-            # geo_zs = geo_zs.squeeze(1)
-            # temp_geo_zs = torch.zeros((geo_zs.shape[0], 48*8))
-            # temp_geo_zs[:, :geo_zs.shape[1]] = geo_zs
-            # temp_geo_zs = temp_geo_zs.reshape(geo_zs.shape[0], 48, 8)
-            # geo_zs = temp_geo_zs
-            # geo_zs = geo_zs.to(torch.long)
-            
-            # geo_zs = geo_zs.to(torch.long)
-            # geo_zs = geo_zs.unsqueeze(1)
-            # geo_zs = geo_zs.unsqueeze(1)
-            # geo_zs = geo_zs.repeat(1, 48, 8)
             geo_zs = geo_zs.to(device)
             geo_zs = geo_zs.unsqueeze(1)
             

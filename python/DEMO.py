@@ -143,7 +143,7 @@ if __name__ == '__main__':
         for i, (ID, geo_zs, top, bottom) in enumerate(ploader):
             filename = ID[0]
             print(filename)
-            if '47638c9573ee7ba3d8a1849b0098a5e7' not in filename:
+            if '5b423f02b76df0ec1472a7f3e4685aa' not in filename:
                 continue
             head_tail = os.path.split(filename)
             head = head_tail[0]

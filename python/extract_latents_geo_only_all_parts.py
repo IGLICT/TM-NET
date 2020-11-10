@@ -25,8 +25,15 @@ def extract_latents_geo(lmdb_env, loader, geo_models, args):
             geo_inputs = geo_inputs.to(device).float().contiguous()
             for j in range(geo_inputs.shape[0]):
                 geo_zs_all_parts = []
+                filename = filenames[j]
+                print(filename)
+                head_tail = os.path.split(filename)
+                head = head_tail[0]
+                basename = os.path.basename(filename)
+                basename_without_ext = basename.split('.')[0]
+                this_id = basename_without_ext.split('_')[0]
 
-                code_mat_dir = os.path.join(args.mat_dir, filenames[j], 'code.mat')
+                code_mat_dir = os.path.join(args.mat_dir, this_id, 'code.mat')
                 code_mat = sio.loadmat(code_mat_dir, verify_compressed_data_integrity=False)
                 code_mat = code_mat['code']
 
