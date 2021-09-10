@@ -71,14 +71,15 @@ class SPVAEDecoder(nn.Module):
 class SPVAE(nn.Module):
     """docstring for SPVAE"""
     def __init__(self, 
-        geo_hidden_dim=128,
+        geo_hidden_dim=64,
         part_num=7,
         device='cpu'):
         super(SPVAE, self).__init__()
         self.geo_hidden_dim = geo_hidden_dim
         self.part_num = part_num
-        self.encoder = SPVAEEncoder(feat_len=self.geo_hidden_dim*self.part_num)
-        self.decoder = SPVAEDecoder(feat_len=self.geo_hidden_dim*self.part_num)
+        self.feat_len = self.part_num*(self.part_num*2+9+self.geo_hidden_dim)
+        self.encoder = SPVAEEncoder(feat_len=self.feat_len)
+        self.decoder = SPVAEDecoder(feat_len=self.feat_len)
 
     def reparameterize(self, mu: Tensor, logvar: Tensor) -> Tensor:
         """
@@ -95,7 +96,7 @@ class SPVAE(nn.Module):
     def forward(self, input: Tensor, **kwargs) -> List[Tensor]:
         mu, log_var = self.encoder(input)
         z = self.reparameterize(mu, log_var)
-        return  [self.decoder(z), input, mu, log_var]
+        return  z, self.decoder(z), mu, log_var
     
     def loss_function(self,
                       *args,

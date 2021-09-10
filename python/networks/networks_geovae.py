@@ -4,7 +4,7 @@ from torch.nn import functional as F
 
 from torch_geometric.nn import DenseGCNConv
 from torch_geometric.nn.pool import edge_pool, TopKPooling
-import GraphConvyj as yj
+import networks.GraphConvyj as yj
 
 import scipy.io as sio
 import numpy as np
@@ -184,7 +184,6 @@ class GeoVAE(nn.Module):
         self.geo_hidden_dim = geo_hidden_dim
         self.ref_mesh_mat = ref_mesh_mat
         self.device = torch.device(device)
-
         ref_mesh_data = sio.loadmat(self.ref_mesh_mat)
         V = ref_mesh_data['V']
         F = ref_mesh_data['F']

@@ -12,7 +12,7 @@ import numpy as np
 import torch
 from torch import nn
 from torch.nn import functional as F
-from VQVAE2Levels import Quantize
+from networks.networks_vqvae import Quantize
 
 def wn_linear(in_dim, out_dim):
     return nn.utils.weight_norm(nn.Linear(in_dim, out_dim))
@@ -22,7 +22,7 @@ def max_min_normalize(AA, min_v, max_v):
     (B, H, W) = AA.shape
     AA = AA.view(B, -1)
     AA -= AA.min(1, keepdim=True)[0]
-    AA /= AA.max(1, keepdim=True)[0]
+    AA /= (AA.max(1, keepdim=True)[0] + 1e-6)
     AA = AA.view(B, H, W)
     AA = AA * (max_v - min_v) + min_v
     return AA
@@ -348,7 +348,8 @@ class PixelSNAILTop(nn.Module):
         cond_res_kernel=3,
         n_out_res_block=0,
         n_condition_dim=64,
-        n_condition_class=0,
+        n_condition_class=256,
+        n_condition_sub_dim=16,
         n_default_condition_dim=64,
     ):
         super().__init__()
@@ -356,7 +357,10 @@ class PixelSNAILTop(nn.Module):
 
         self.n_class = n_class
         self.n_condition_dim = n_condition_dim
+        self.n_condition_class = n_condition_class
+        self.n_condition_sub_dim = n_condition_sub_dim
         self.n_default_condition_dim = n_default_condition_dim
+        
         if self.n_condition_dim > self.n_default_condition_dim:
             self.linear1 = torch.nn.Linear(self.n_condition_dim, 256)
             self.bn1 = nn.BatchNorm1d(num_features=256)
@@ -366,15 +370,14 @@ class PixelSNAILTop(nn.Module):
             self.relu2 = torch.nn.ReLU()
             self.linear3 = torch.nn.Linear(128, 64)
             self.relu3 = torch.nn.ReLU()
+        self.quantize = Quantize(self.n_condition_sub_dim, self.n_condition_class)
 
         if kernel_size % 2 == 0:
             kernel = kernel_size + 1
 
         else:
             kernel = kernel_size
-        if n_condition_class == 0:
-            n_condition_class = n_class
-        self.n_condition_class = n_class
+
 
         self.horizontal = CausalConv2d(
             n_class, channel, [kernel // 2, kernel], padding='down'
@@ -382,7 +385,6 @@ class PixelSNAILTop(nn.Module):
         self.vertical = CausalConv2d(
             n_class, channel, [(kernel + 1) // 2, kernel // 2], padding='downright'
         )
-        self.quantize = Quantize(self.n_default_condition_dim, self.n_condition_class)
 
         coord_x = (torch.arange(height).float() - height / 2) / height
         coord_x = coord_x.view(1, 1, height, 1).expand(1, 1, height, width).contiguous()
@@ -443,16 +445,17 @@ class PixelSNAILTop(nn.Module):
                 condition = condition[:, :, :height, :]
 
             else:
-                if self.n_condition_dim > 64:
-                    condition = condition.squeeze(1)
-                    condition = condition.squeeze(1)
+                if self.n_condition_dim > self.n_default_condition_dim:
+                    # condition = condition.squeeze(1)
+                    # condition = condition.squeeze(1)
                     condition = self.relu1(self.bn1(self.linear1(condition)))
                     condition = self.relu2(self.bn2(self.linear2(condition)))
                     condition = self.relu3(self.linear3(condition))
-                    condition = condition.unsqueeze(1)
-                    condition = condition.unsqueeze(1)
+                    # condition = condition.unsqueeze(1)
+                    # condition = condition.unsqueeze(1)
 
-                condition, extra_diff, _ = self.quantize(condition)
+                condition, extra_diff, condition_id = self.quantize(condition)
+
                 condition = condition.squeeze(1)
                 condition = max_min_normalize(condition, 0, 255)
                 condition = condition.round()

@@ -6,7 +6,6 @@ This is a Python3 / Pytorch implementation of TM-NET.
 - [Setup](#setup)
 - [Prepare Data](#prepare-data)
 - [Training and Test](#training-and-test)
-- [DEMO on Car Dataset](#demo-on-car-dataset)
 
 # Setup
 
@@ -67,121 +66,85 @@ Folder ```final50``` is all we need for training and test.
 
 - Train PartVAE for each part
 ```shell
-python train_geo.py --mat_dir ../data/car/train --ref_mesh_mat ../data/car_std.mat --ckpt_dir ./car_geo_ckpt --batch_size 32 --part_name body --device 0
-python train_geo.py --mat_dir ../data/car/train --ref_mesh_mat ../data/car_std.mat --ckpt_dir ./car_geo_ckpt --batch_size 32 --part_name left_back_wheel --device 0
-python train_geo.py --mat_dir ../data/car/train --ref_mesh_mat ../data/car_std.mat --ckpt_dir ./car_geo_ckpt --batch_size 32 --part_name left_front_wheel --device 0
-python train_geo.py --mat_dir ../data/car/train --ref_mesh_mat ../data/car_std.mat --ckpt_dir ./car_geo_ckpt --batch_size 32 --part_name left_mirror --device 0
-python train_geo.py --mat_dir ../data/car/train --ref_mesh_mat ../data/car_std.mat --ckpt_dir ./car_geo_ckpt --batch_size 32 --part_name right_back_wheel --device 0
-python train_geo.py --mat_dir ../data/car/train --ref_mesh_mat ../data/car_std.mat --ckpt_dir ./car_geo_ckpt --batch_size 32 --part_name right_front_wheel --device 0
-python train_geo.py --mat_dir ../data/car/train --ref_mesh_mat ../data/car_std.mat --ckpt_dir ./car_geo_ckpt --batch_size 32 --part_name right_mirror --device 0
+python ./python/train.py --yaml ./python/yaml/table/surface/geovae.yml
+python ./python/train.py --yaml ./python/yaml/table/leg/geovae.yml
 ```
 
-- Test PartVAE reconstruction (OPTIONAL)
+- Train VQVAE
 ```shell
-python train_geo.py --mat_dir ../data/car/train --ref_mesh_mat ../data/car_std.mat --ckpt_dir ./car_geo_ckpt/body --load_ckpt --is_test 1 --part_name body --batch_size 1 --device 0
-python train_geo.py --mat_dir ../data/car/train --ref_mesh_mat ../data/car_std.mat --ckpt_dir ./car_geo_ckpt/left_back_wheel --load_ckpt --is_test 1 --part_name left_back_wheel --batch_size 1 --device 0
-python train_geo.py --mat_dir ../data/car/train --ref_mesh_mat ../data/car_std.mat --ckpt_dir ./car_geo_ckpt/left_front_wheel --load_ckpt --is_test 1 --part_name left_front_wheel --batch_size 1 --device 0
-python train_geo.py --mat_dir ../data/car/train --ref_mesh_mat ../data/car_std.mat --ckpt_dir ./car_geo_ckpt/left_mirror --load_ckpt --is_test 1 --part_name left_mirror --batch_size 1 --device 0
-python train_geo.py --mat_dir ../data/car/train --ref_mesh_mat ../data/car_std.mat --ckpt_dir ./car_geo_ckpt/right_back_wheel --load_ckpt --is_test 1 --part_name right_back_wheel --batch_size 1 --device 0
-python train_geo.py --mat_dir ../data/car/train --ref_mesh_mat ../data/car_std.mat --ckpt_dir ./car_geo_ckpt/right_front_wheel --load_ckpt --is_test 1 --part_name right_front_wheel --batch_size 1 --device 0
-python train_geo.py --mat_dir ../data/car/train --ref_mesh_mat ../data/car_std.mat --ckpt_dir ./car_geo_ckpt/right_mirror --load_ckpt --is_test 1 --part_name right_mirror --batch_size 1 --device 0
+python ./python/train.py --yaml ./python/yaml/table/vqvae.yml
 ```
 
-- Extract PartVAE latents
-```
-python extract_latents_geo_only_all_parts.py --mat_dir ../data/car/train --ref_mesh_mat ../data/car_std.mat --geo_ckpt_dir ./car_geo_ckpt --category car --save_path ./geo_all_parts --device 0
-```
-
-- Train SP-VAE for each shape
+- Extract discrete code for the seed part
 ```shell
-python  train_spvae.py --path ./geo_all_parts/ --ckpt_dir ./car_spvae_ckpt --category car --batch_size 512 --device 0
+python ./python/extract_latents_central_part.py \
+--image_dir ../data/table/ \
+--mat_dir ../data/table \
+--vqvae_ckpt ./table_vqvae/latest.pth \
+--vqvae_yaml ./python/yaml/table/vqvae.yml \
+--geovae_ckpt ./table_geovae/surface/latest.pth \
+--geovae_yaml ./python/yaml/table/surface/geovae.yml \
+--category table \
+--save_path ../latent_data/table_latents \
+--device 0 \
+--mode 'train' or 'test' or 'val'
 ```
 
-- Train VQVAE for each part
+- Train conditional PixelSNAIL for the seed part
 ```shell
-python train_vqvae_patch.py --image_dir ../data/car/train --ckpt_dir ./car_patch_vqvae_ckpt --part_name body --device 0
-python train_vqvae_patch.py --image_dir ../data/car/train --ckpt_dir ./car_patch_vqvae_ckpt --part_name left_back_wheel --device 0
-python train_vqvae_patch.py --image_dir ../data/car/train --ckpt_dir ./car_patch_vqvae_ckpt --part_name left_front_wheel --device 0
-python train_vqvae_patch.py --image_dir ../data/car/train --ckpt_dir ./car_patch_vqvae_ckpt --part_name left_mirror --device 0
-python train_vqvae_patch.py --image_dir ../data/car/train --ckpt_dir ./car_patch_vqvae_ckpt --part_name right_back_wheel --device 0
-python train_vqvae_patch.py --image_dir ../data/car/train --ckpt_dir ./car_patch_vqvae_ckpt --part_name right_front_wheel --device 0
-python train_vqvae_patch.py --image_dir ../data/car/train --ckpt_dir ./car_patch_vqvae_ckpt --part_name right_mirror --device 0
+python ./python/train.py --yaml ./python/yaml/table/surface/pixelsnail_top.yml
+python ./python/train.py --yaml ./python/yaml/table/surface/pixelsnail_bottom.yml
 ```
 
-- Test VQVAE reconstruction(OPTIONAL)
+- Extract discrete code for other parts
 ```shell
-python train_vqvae_patch.py --image_dir ../data/car/test --ckpt_dir ./car_patch_vqvae_ckpt/body --part_name body --load_ckpt --is_test 1 --device 0
-python train_vqvae_patch.py --image_dir ../data/car/test --ckpt_dir ./car_patch_vqvae_ckpt/left_back_wheel --part_name left_back_wheel --load_ckpt --is_test 1 --device 0
-python train_vqvae_patch.py --image_dir ../data/car/test --ckpt_dir ./car_patch_vqvae_ckpt/left_front_wheel --part_name left_front_wheel --load_ckpt --is_test 1 --device 0
-python train_vqvae_patch.py --image_dir ../data/car/test --ckpt_dir ./car_patch_vqvae_ckpt/left_mirror --part_name left_mirror --load_ckpt --is_test 1 --device 0
-python train_vqvae_patch.py --image_dir ../data/car/test --ckpt_dir ./car_patch_vqvae_ckpt/right_back_wheel --part_name right_back_wheel --load_ckpt --is_test 1 --device 0
-python train_vqvae_patch.py --image_dir ../data/car/test --ckpt_dir ./car_patch_vqvae_ckpt/right_front_wheel --part_name right_front_wheel --load_ckpt --is_test 1 --device 0
-python train_vqvae_patch.py --image_dir ../data/car/test --ckpt_dir ./car_patch_vqvae_ckpt/right_mirror --part_name right_mirror --load_ckpt --is_test 1 --device 0
-```
-
-- Extract discrete code for the central part in the training set
-```shell
-python extract_latents_central_part.py --mat_dir ../data/car/train --ref_mesh_mat ../data/car_std.mat --geo_ckpt ./car_geo_ckpt/body/geovae_newest.pt  --vqvae_ckpt ./car_patch_vqvae_ckpt/body/vqvae_newest.pt --save_path ./car_latents_with_geo_train --device 2 --category car
-```
-
-- Train conditional PixelSNAIL for the central part
-```shell
-python train_pixelsnail_with_geo_condition_2levels_central_part.py --hier top  ./car_latents_with_geo_train/body --batch 1 --device 2
-python train_pixelsnail_with_geo_condition_2levels_central_part.py --hier bottom  ./car_latents_with_geo_train/body --batch 1 --device 2
-```
-
-- Extract discrete code for other parts in the training set
-```shell
-python extract_latents_other_parts.py --mat_dir ../data/car/train --ref_mesh_mat ../data/car_std.mat --geo_ckpt_dir ./car_geo_ckpt --vqvae_ckpt_dir ./car_patch_vqvae_ckpt --save_path ./car_latents_with_geo_train --category car --device 2
+python ./python/extract_latents_other_parts.py \
+--image_dir ../data/table/ \
+--mat_dir ../data/table \
+--vqvae_ckpt ./table_vqvae/latest.pth \
+--vqvae_yaml ./python/yaml/table/vqvae.yml \
+--geovae_ckpt_dir ./table_geovae \
+--geovae_yaml ./python/yaml/table/geovae.yml \
+--category table \
+--save_path ../latent_data/table_latents \
+--device 0 \
+--mode 'train' or 'test' or 'val'
 ```
 
 - Train conditional PixelSNAIL for other parts
 ```shell
-python train_pixelsnail_with_geo_condition_2levels_other_parts.py --hier top ./car_latents_with_geo_train/left_back_wheel --batch 1 --part_name left_back_wheel --device 2
-python train_pixelsnail_with_geo_condition_2levels_other_parts.py --hier top ./car_latents_with_geo_train/left_front_wheel --batch 1 --part_name left_front_wheel --device 2
-python train_pixelsnail_with_geo_condition_2levels_other_parts.py --hier top ./car_latents_with_geo_train/left_mirror --batch 1 --part_name left_mirror --device 2
-python train_pixelsnail_with_geo_condition_2levels_other_parts.py --hier top ./car_latents_with_geo_train/right_back_wheel --batch 1 --part_name right_back_wheel --device 2
-python train_pixelsnail_with_geo_condition_2levels_other_parts.py --hier top ./car_latents_with_geo_train/right_front_wheel --batch 1 --part_name right_front_wheel --device 2
-python train_pixelsnail_with_geo_condition_2levels_other_parts.py --hier top ./car_latents_with_geo_train/right_mirror --batch 1 --part_name right_mirror --device 2
-
-python train_pixelsnail_with_geo_condition_2levels_other_parts.py --hier bottom  ./car_latents_with_geo_train/left_back_wheel --batch 1 --part_name left_back_wheel --device 2
-python train_pixelsnail_with_geo_condition_2levels_other_parts.py --hier bottom  ./car_latents_with_geo_train/left_front_wheel --batch 1 --part_name left_front_wheel --device 2
-python train_pixelsnail_with_geo_condition_2levels_other_parts.py --hier bottom  ./car_latents_with_geo_train/left_mirror --batch 1 --part_name left_mirror --device 2
-python train_pixelsnail_with_geo_condition_2levels_other_parts.py --hier bottom  ./car_latents_with_geo_train/right_back_wheel --batch 1 --part_name right_back_wheel --device 2
-python train_pixelsnail_with_geo_condition_2levels_other_parts.py --hier bottom  ./car_latents_with_geo_train/right_front_wheel --batch 1 --part_name right_front_wheel --device 2
-python train_pixelsnail_with_geo_condition_2levels_other_parts.py --hier bottom  ./car_latents_with_geo_train/right_mirror --batch 1 --part_name right_mirror --device 2
+python ./python/train.py --yaml ./python/yaml/table/leg/pixelsnail_top.yml
+python ./python/train.py --yaml ./python/yaml/table/leg/pixelsnail_bottom.yml
 ```
 
-- Extract geometry latent for the central part in the test set
+- Sample texture for the seed part
 ```shell
-python extract_latents_central_part.py --mat_dir ../data/car/test --ref_mesh_mat ../data/car_std.mat --geo_ckpt ./car_geo_ckpt/body/geovae_newest.pt --vqvae_ckpt ./car_patch_vqvae_ckpt/body/vqvae_newest.pt --save_path ./car_latents_with_geo_test --category car --device 0
-```
-
-- Sample texture for the central part
-```shell
-python conditional_sample_2levels_central_part.py  --vqvae ./car_patch_vqvae_ckpt/body/vqvae_newest.pt --top ./condition_ckpt/body/pixelsnail_top.pt --bottom ./condition_ckpt/body/pixelsnail_bottom.pt --path ./car_latents_with_geo_test/body --device 0
-```
-
-- Extract geometry latent for other parts in the test set
-```shell
-python extract_latents_other_parts.py --mat_dir ../data/car/test --ref_mesh_mat ../data/car_std.mat --geo_ckpt_dir ./car_geo_ckpt --vqvae_ckpt_dir ./car_patch_vqvae_ckpt --save_path ./car_latents_with_geo_test --category car --device 0
+python ./python/conditional_sample_2levels_central_part.py \
+--path ../latent_data/table_latents \
+--part_name surface \
+--vqvae ./table_vqvae/latest.pth \
+--vqvae_yaml ./python/yaml/table/vqvae.yml \
+--top ./table_pixelsnail/top_16/latest.pth \
+--top_yaml ./python/yaml/table/pixelsnail_top_center_16.yml \
+--bottom ./table_pixelsnail/bottom/latest.pth \
+--bottom_yaml ./python/yaml/table/pixelsnail_bottom_center.yml \
+--device 0 \
+--batch 1
 ```
 
 - Sample texture for other parts
 ```shell
-python conditional_sample_2levels_other_parts.py --vqvae ./car_patch_vqvae_ckpt/left_back_wheel/vqvae_newest.pt --top ./condition_ckpt/left_back_wheel/pixelsnail_top.pt --bottom ./condition_ckpt/left_back_wheel/pixelsnail_bottom.pt --path ./car_latents_with_geo_test/left_back_wheel --central_part_sample_dir ./condition_ckpt/body/auto_texture --device 0
-python conditional_sample_2levels_other_parts.py --vqvae ./car_patch_vqvae_ckpt/left_front_wheel/vqvae_newest.pt --top ./condition_ckpt/left_front_wheel/pixelsnail_top.pt --bottom ./condition_ckpt/left_front_wheel/pixelsnail_bottom.pt --path ./car_latents_with_geo_test/left_front_wheel --central_part_sample_dir ./condition_ckpt/body/auto_texture --device 0
-python conditional_sample_2levels_other_parts.py --vqvae ./car_patch_vqvae_ckpt/left_mirror/vqvae_newest.pt --top ./condition_ckpt/left_mirror/pixelsnail_top.pt --bottom ./condition_ckpt/left_mirror/pixelsnail_bottom.pt --path ./car_latents_with_geo_test/left_mirror --central_part_sample_dir ./condition_ckpt/body/auto_texture --device 0
-
-python conditional_sample_2levels_other_parts.py --vqvae ./car_patch_vqvae_ckpt/right_back_wheel/vqvae_newest.pt --top ./condition_ckpt/right_back_wheel/pixelsnail_top.pt --bottom ./condition_ckpt/right_back_wheel/pixelsnail_bottom.pt --path ./car_latents_with_geo_test/right_back_wheel --central_part_sample_dir ./condition_ckpt/body/auto_texture --device 0
-python conditional_sample_2levels_other_parts.py --vqvae ./car_patch_vqvae_ckpt/right_front_wheel/vqvae_newest.pt --top ./condition_ckpt/right_front_wheel/pixelsnail_top.pt --bottom ./condition_ckpt/right_front_wheel/pixelsnail_bottom.pt --path ./car_latents_with_geo_test/right_front_wheel --central_part_sample_dir ./condition_ckpt/body/auto_texture --device 0
-python conditional_sample_2levels_other_parts.py --vqvae ./car_patch_vqvae_ckpt/right_mirror/vqvae_newest.pt --top ./condition_ckpt/right_mirror/pixelsnail_top.pt --bottom ./condition_ckpt/right_mirror/pixelsnail_bottom.pt --path ./car_latents_with_geo_test/right_mirror --central_part_sample_dir ./condition_ckpt/body/auto_texture --device 0
+python ./python/conditional_sample_2levels_other_parts.py \
+--path ../latent_data/table_latents \
+--central_part_name surface \
+--part_name leg \
+--vqvae ./table_vqvae/latest.pth \
+--vqvae_yaml ./python/yaml/table/vqvae.yml \
+--top ./table_pixelsnail/leg/top_16/latest.pth \
+--top_yaml ./python/yaml/table/leg/pixelsnail_top_center_16.yml \
+--bottom ./table_pixelsnail/leg/bottom/latest.pth \
+--bottom_yaml ./python/yaml/table/leg/pixelsnail_bottom_center.yml \
+--central_part_sample_dir ./table_pixelsnail/top_16/auto_texture \
+--device 0 \
+--batch 1
 ```
-
-# DEMO on Car Dataset
-
-1. Download [checkpoint and extracted latents](https://drive.google.com/file/d/1q1RM9dZ0b2WmRCrqzPl4UhegLKSWqxr5/view?usp=sharing) and put it into ``python`` directory.
-
-2. Run ``sh DEMO.sh`` and generated textures will be shown in ``./condition_ckpt/body/auto_texture``.
-
-3. Copy a suitable texture image to target directory ``./condition_ckpt/body/auto_texture/sample`` and rename it to ``body_reg.png``, then open ``body_reg.obj`` to check the result.

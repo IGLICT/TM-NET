@@ -24,13 +24,15 @@ from torch.nn import functional as F
 
 
 class Quantize(nn.Module):
-    def __init__(self, dim, n_embed, decay=0.99, eps=1e-5):
+    def __init__(self, dim, n_embed, decay=0.99, eps=1e-5, beta=0.25):
         super().__init__()
 
         self.dim = dim
         self.n_embed = n_embed
         self.decay = decay
         self.eps = eps
+        self.beta = beta
+        print(self.beta)
 
         embed = torch.randn(dim, n_embed)
         self.register_buffer('embed', embed)
@@ -65,7 +67,6 @@ class Quantize(nn.Module):
         quantize = self.embed_code(embed_ind)
         # print(quantize.shape)
         # torch.Size([1, 32, 32, 64])
-
         if self.training:
             self.cluster_size.data.mul_(self.decay).add_(
                 1 - self.decay, embed_onehot.sum(0)
@@ -98,7 +99,9 @@ class Quantize(nn.Module):
             
             self.embed.data.copy_(embed_normalized)
 
-        diff = (quantize.detach() - input).pow(2).mean()
+        diff_e = (quantize.detach() - input).pow(2).mean()
+        diff_q = (input.detach() - quantize).pow(2).mean()
+        diff = diff_q + diff_e * self.beta
         quantize = input + (quantize - input).detach()
 
         return quantize, diff, embed_ind
@@ -253,7 +256,9 @@ class VQVAE(nn.Module):
         n_res_channel=32,
         embed_dim=64,
         n_embed=32,
-        decay=0.99,
+        decay=0.99, 
+        eps=1e-5, 
+        beta=0.25,
         stride=4,
     ):
         super().__init__()
@@ -261,12 +266,12 @@ class VQVAE(nn.Module):
         self.enc_b = Encoder(in_channel, channel, n_res_block, n_res_channel, stride=stride)
         self.enc_t = Encoder(channel, channel, n_res_block, n_res_channel, stride=2)
         self.quantize_conv_t = nn.Conv2d(channel, embed_dim, 1)
-        self.quantize_t = Quantize(embed_dim, n_embed)
+        self.quantize_t = Quantize(embed_dim, n_embed, decay=decay, eps=eps, beta=beta)
         self.dec_t = Decoder(
             embed_dim, embed_dim, channel, n_res_block, n_res_channel, stride=2
         )
         self.quantize_conv_b = nn.Conv2d(embed_dim + channel, embed_dim, 1)
-        self.quantize_b = Quantize(embed_dim, n_embed)
+        self.quantize_b = Quantize(embed_dim, n_embed, decay=decay, eps=eps, beta=beta)
         self.upsample_t = nn.ConvTranspose2d(
             embed_dim, embed_dim, 4, stride=2, padding=1
         )

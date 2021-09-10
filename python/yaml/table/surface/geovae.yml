@@ -1,0 +1,35 @@
+mode: 'train'
+model:
+  name: geovae
+  geo_hidden_dim: 64
+  ref_mesh_mat: ../data/table/table_std.mat
+data:
+  dataset: ''
+  data_root: ../data/table
+  category: table
+  part_name: surface
+  parallel: False
+train:
+  device: 1
+  model_dir: ./table_geovae/surface
+  log_dir: ./table_geovae/surface/log
+  load_ckpt: False
+  epoch: 100000
+  lr: 0.0001
+  save_frequency: 2000
+  lr_decay: 1
+  lr_step_size: 1000
+  vis: True
+  vis_frequency: 100
+  batch_size: 4
+  is_shuffle: True
+  num_workers: 4
+val:
+  batch_size: 1
+  is_shuffle: False
+  num_workers: 1
+  val_frequency: 100
+test:
+  batch_size: 1
+  is_shuffle: False
+  num_workers: 1

@@ -1,2 +1,0 @@
-unzip TM-NET_ckpt.zip
-python DEMO.py  --vqvae ./car_patch_vqvae_ckpt/body/vqvae_newest.pt --top ./condition_ckpt/body/pixelsnail_top.pt --bottom ./condition_ckpt/body/pixelsnail_bottom.pt --path ./car_latents_with_geo_test/body --device 2 --batch 2

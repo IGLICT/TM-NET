@@ -1,0 +1,48 @@
+mode: 'train'
+model:
+  name: pixelsnail_bottom_center
+  shape: 32
+  n_class: 256
+  channel: 256
+  kernel_size: 5 
+  n_block: 4
+  n_res_block: 4
+  res_channel: 256
+  attention: False
+  dropout: 0
+  n_cond_res_block: 3
+  cond_res_channel: 256
+  cond_res_kernel: 3
+  n_out_res_block: 0
+  n_condition_dim: 64
+  n_condition_class: 256
+data:
+  dataset: ''
+  data_root: ../latent_data/table_latents
+  category: table
+  part_name: null
+  parallel: False
+train:
+  device: 2
+  model_dir: ./table_pixelsnail/bottom
+  log_dir: ./table_pixelsnail/bottom/log
+  load_ckpt: True
+  epoch: 100000
+  lr: 0.0003
+  save_frequency: 100
+  lr_decay: 0.999
+  lr_step_size: 100
+  vis: True
+  vis_frequency: 100
+  batch_size: 8
+  is_shuffle: True
+  num_workers: 1
+val:
+  batch_size: 1
+  is_shuffle: False
+  num_workers: 1
+  val_frequency: 100
+test:
+  batch_size: 1
+  is_shuffle: False
+  num_workers: 1

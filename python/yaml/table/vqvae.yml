@@ -1,0 +1,46 @@
+mode: 'train'
+model:
+  name: 'vqvae'
+  in_channel: 4
+  channel: 128
+  n_res_block: 2
+  n_res_channel: 32
+  embed_dim: 64
+  n_embed: 256
+  decay: 0.99
+  eps: 0.00001
+  beta: 0.25
+  stride: 8
+  alpha: 2
+data:
+  dataset: ''
+  data_root: ../data/table
+  category: table
+  part_name: null
+  height: 256
+  width: 256
+  parallel: False
+train:
+  device: 0
+  model_dir: ./table_vqvae
+  log_dir: ./table_vqvae/log
+  load_ckpt: False
+  epoch: 100000
+  lr: 0.0003
+  save_frequency: 10
+  lr_decay: 0.999
+  lr_step_size: 100
+  vis: True
+  vis_frequency: 100
+  batch_size: 50
+  is_shuffle: False
+  num_workers: 4
+val:
+  batch_size: 6
+  is_shuffle: False
+  num_workers: 1
+  val_frequency: 100
+test:
+  batch_size: 6
+  is_shuffle: False
+  num_workers: 1

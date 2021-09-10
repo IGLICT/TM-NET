@@ -1,0 +1,49 @@
+mode: 'train'
+model:
+  name: pixelsnail_top_others
+  shape: 16
+  n_class: 256
+  channel: 256
+  kernel_size: 5 
+  n_block: 4
+  n_res_block: 4
+  res_channel: 128
+  attention: True
+  dropout: 0.1
+  n_cond_res_block: 3
+  cond_res_channel: 256
+  cond_res_kernel: 3
+  n_out_res_block: 0
+  n_condition_dim: 6064
+  n_condition_class: 256
+  n_condition_sub_dim: 16
+data:
+  dataset: ''
+  data_root: ../latent_data/table_latents_others
+  category: table
+  part_name: leg
+  parallel: False
+train:
+  device: 1
+  model_dir: ./table_pixelsnail/leg/top_16
+  log_dir: ./table_pixelsnail/leg/top_16/log
+  load_ckpt: True
+  epoch: 100000
+  lr: 0.0003
+  save_frequency: 100
+  lr_decay: 0.999
+  lr_step_size: 100
+  vis: True
+  vis_frequency: 100
+  batch_size: 4
+  is_shuffle: False
+  num_workers: 4
+val:
+  batch_size: 1
+  is_shuffle: False
+  num_workers: 1
+  val_frequency: 100
+test:
+  batch_size: 1
+  is_shuffle: False
+  num_workers: 1
