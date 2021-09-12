@@ -19,15 +19,15 @@ model:
   n_condition_sub_dim: 16
 data:
   dataset: ''
-  data_root: ../latent_data/table_latents
+  data_root: ./table_latents
   category: table
   part_name: surface
   parallel: False
 train:
   device: 0
-  model_dir: ./table_pixelsnail/top_16
-  log_dir: ./table_pixelsnail/top_16/log
-  load_ckpt: True
+  model_dir: ./table_pixelsnail/surface/top_16
+  log_dir: ./table_pixelsnail/surface/top_16/log
+  load_ckpt: False
   epoch: 100000
   lr: 0.0003
   save_frequency: 100

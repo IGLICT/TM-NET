@@ -18,7 +18,7 @@ model:
   n_condition_class: 256
 data:
   dataset: ''
-  data_root: ../latent_data/table_latents
+  data_root: ./table_latents
   category: table
   part_name: null
   parallel: False

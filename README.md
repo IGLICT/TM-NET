@@ -29,7 +29,7 @@ pip install -r requirements.txt
 5. Run ```TransferColorPerPixelScript.m``` to generate texture images for registered parts.
 6. Run ```PrepareForTraining.m``` to split geometry, structure, image data to training or test dir. It will also divide texture image to six patches.
 
-An example is shown in ```Pipeline.m```. After you successfully run the code, the dir structure will like follows:
+An example is shown in ```Pipeline.m```. After you successfully run the code, the dir structure will be like follows:
 ```txt
 ├─box50
 │  ├─37b6df64a97a5c29369151623ac3890b
@@ -85,7 +85,7 @@ python ./python/extract_latents_central_part.py \
 --geovae_ckpt ./table_geovae/surface/latest.pth \
 --geovae_yaml ./python/yaml/table/surface/geovae.yml \
 --category table \
---save_path ../latent_data/table_latents \
+--save_path ./table_latents \
 --device 0 \
 --mode 'train' or 'test' or 'val'
 ```
@@ -106,7 +106,7 @@ python ./python/extract_latents_other_parts.py \
 --geovae_ckpt_dir ./table_geovae \
 --geovae_yaml ./python/yaml/table/geovae.yml \
 --category table \
---save_path ../latent_data/table_latents \
+--save_path ./table_latents \
 --device 0 \
 --mode 'train' or 'test' or 'val'
 ```
@@ -120,7 +120,7 @@ python ./python/train.py --yaml ./python/yaml/table/leg/pixelsnail_bottom.yml
 - Sample texture for the seed part
 ```shell
 python ./python/conditional_sample_2levels_central_part.py \
---path ../latent_data/table_latents \
+--path ./table_latents \
 --part_name surface \
 --vqvae ./table_vqvae/latest.pth \
 --vqvae_yaml ./python/yaml/table/vqvae.yml \
@@ -135,7 +135,7 @@ python ./python/conditional_sample_2levels_central_part.py \
 - Sample texture for other parts
 ```shell
 python ./python/conditional_sample_2levels_other_parts.py \
---path ../latent_data/table_latents \
+--path ./table_latents \
 --central_part_name surface \
 --part_name leg \
 --vqvae ./table_vqvae/latest.pth \

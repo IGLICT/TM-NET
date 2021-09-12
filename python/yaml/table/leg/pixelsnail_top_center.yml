@@ -19,7 +19,7 @@ model:
   n_condition_sub_dim: 16
 data:
   dataset: ''
-  data_root: ../latent_data/table_latents_others
+  data_root: ./table_latents
   category: table
   part_name: leg
   parallel: False
@@ -27,7 +27,7 @@ train:
   device: 1
   model_dir: ./table_pixelsnail/leg/top_16
   log_dir: ./table_pixelsnail/leg/top_16/log
-  load_ckpt: True
+  load_ckpt: False
   epoch: 100000
   lr: 0.0003
   save_frequency: 100

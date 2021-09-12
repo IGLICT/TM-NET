@@ -18,15 +18,15 @@ model:
   n_condition_class: 256
 data:
   dataset: ''
-  data_root: ../latent_data/table_latents
+  data_root: ./table_latents
   category: table
   part_name: null
   parallel: False
 train:
   device: 2
-  model_dir: ./table_pixelsnail/bottom
-  log_dir: ./table_pixelsnail/bottom/log
-  load_ckpt: True
+  model_dir: ./table_pixelsnail/surface/bottom
+  log_dir: ./table_pixelsnail/surface/bottom/log
+  load_ckpt: False
   epoch: 100000
   lr: 0.0003
   save_frequency: 100
