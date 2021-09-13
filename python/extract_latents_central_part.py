@@ -117,9 +117,9 @@ def extract_latents_patch(loader, model, geo_model, args):
                 # DEBUG save
                 if dec.shape[1] == 4:
                     dec[:, 3, :, :] = ((dec[:, 3, :, :] > 0).float()-0.5)*2
-                from torchvision.utils import save_image, make_grid
-                save_image(make_grid(dec), os.path.join(sub_dir, '{}_{}.png'.format(model_id, args.central_part_name)))
-                save_image(make_grid(patches), os.path.join(sub_dir, '{}_{}1.png'.format(model_id, args.central_part_name)))
+                # from torchvision.utils import save_image, make_grid
+                # save_image(make_grid(dec), os.path.join(sub_dir, '{}_{}.png'.format(model_id, args.central_part_name)))
+                # save_image(make_grid(patches), os.path.join(sub_dir, '{}_{}1.png'.format(model_id, args.central_part_name)))
                 index += 1
                 pbar.set_description(f'inserted: {index} {basename}')
 
