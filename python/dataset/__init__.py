@@ -67,8 +67,7 @@ def get_part_names(category):
     elif category == 'car':
         part_names = ['body', 'left_front_wheel', 'right_front_wheel', 'left_back_wheel', 'right_back_wheel','left_mirror','right_mirror']
     elif category == 'table':
-        # part_names = ['surface', 'leg1_1', 'leg1_2', 'leg2_1', 'leg2_2', 'leg3_1', 'leg3_2', 'leg4_1', 'leg4_2']
-        part_names = ['surface', 'left_leg1', 'left_leg2', 'left_leg3', 'left_leg4', 'left_leg5', 'left_leg6', 'left_leg7', 'left_leg8', 'right_leg1', 'right_leg2', 'right_leg3', 'right_leg4', 'right_leg5', 'right_leg6', 'right_leg7', 'right_leg8']
+        part_names = ['surface', 'left_leg1', 'left_leg2', 'left_leg3', 'left_leg4', 'right_leg1', 'right_leg2', 'right_leg3', 'right_leg4']
     elif category == 'plane':
         part_names = ['body', 'left_wing', 'right_wing', 'left_tail', 'right_tail', 'up_tail', 'down_tail', 'front_gear', 'left_gear', 'right_gear', 'left_engine1', 'right_engine1', 'left_engine2', 'right_engine2']
     else:
