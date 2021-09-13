@@ -35,7 +35,7 @@ train:
   lr_step_size: 100
   vis: True
   vis_frequency: 100
-  batch_size: 6
+  batch_size: 5
   is_shuffle: False
   num_workers: 4
 val:
