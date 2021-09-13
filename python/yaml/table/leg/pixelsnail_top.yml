@@ -24,7 +24,7 @@ data:
   part_name: leg
   parallel: False
 train:
-  device: 1
+  device: 0
   model_dir: ./table_pixelsnail/leg/top_16
   log_dir: ./table_pixelsnail/leg/top_16/log
   load_ckpt: False

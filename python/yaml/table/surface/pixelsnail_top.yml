@@ -27,7 +27,7 @@ train:
   device: 0
   model_dir: ./table_pixelsnail/surface/top_16
   log_dir: ./table_pixelsnail/surface/top_16/log
-  load_ckpt: False
+  load_ckpt: True
   epoch: 100000
   lr: 0.0003
   save_frequency: 100
@@ -35,7 +35,7 @@ train:
   lr_step_size: 100
   vis: True
   vis_frequency: 100
-  batch_size: 2
+  batch_size: 6
   is_shuffle: False
   num_workers: 4
 val:

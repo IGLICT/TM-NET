@@ -459,7 +459,7 @@ class PixelSNAILTop(nn.Module):
                     condition = condition.unsqueeze(1)
 
                 reshaped_condition = einops.rearrange(condition, 'B H W (T C) -> B H (W T) C', T=self.n_default_condition_dim//self.n_condition_sub_dim)
-                print(reshaped_condition.shape)
+                # print(reshaped_condition.shape)
                 _, latent_diff, condition_id = self.quantize(reshaped_condition)
                 self.latent_diff = latent_diff
 

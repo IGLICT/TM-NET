@@ -23,7 +23,7 @@ data:
   part_name: null
   parallel: False
 train:
-  device: 2
+  device: 0
   model_dir: ./table_pixelsnail/surface/bottom
   log_dir: ./table_pixelsnail/surface/bottom/log
   load_ckpt: False
